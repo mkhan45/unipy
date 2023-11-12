@@ -76,6 +76,11 @@ class Substs:
         print(self.s)
         return ', '.join(f"{k} = {Substs.aux(v)}" for (k, v) in self.s)
 
+    def __getitem__(self, key):
+        for (k, v) in self.s:
+            if k == key: return Substs.aux(v)
+        return None
+
 def reify(x, s=[]):
     if isinstance(x, int): return ('num', x)
     else: return x.reify(s)
@@ -83,15 +88,17 @@ def reify(x, s=[]):
 def run(q, s=[]):
     return Substs(reify(q, s))
 
-# class Relation:
-#     def __init__(self, name, *args):
-#         self.name = name
-#         self.args = args
+class Relation:
+    def __init__(self, name, *args, body):
+        self.name = name
+        self.args = args
+        self.body = body
 
-#     def __str__(self):
-#         return self.name + '(' + ', '.join(map(str, self.args)) + ')'
+    def __str__(self):
+        return self.name + '(' + ', '.join(map(str, self.args)) + ')' + ' :- ' + str(self.body)
 
 x = Var('x')
 y = Var('y')
 t = (x == 1) & (x == y)
-print(run(t))
+res = run(t)
+print(res) # x = 1, y = 1
