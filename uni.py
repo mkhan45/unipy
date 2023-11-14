@@ -66,18 +66,34 @@ def get_rel_constraints(t):
     assert(r[0] == 'rel')
     (_, r, vs, cs) = r
 
-    substs = [(v, t) for (v, t) in zip(vs, ts)]
+    substs = [(('var', v), t) for (v, t) in zip(vs, ts)]
     return [(subst_all(substs, 'in', l), subst_all(substs, 'in', r)) for (l, r) in cs]
+
+def unify_rel_in(rel_app, st):
+    cs = get_rel_constraints(rel_app)
+    nst = st
+    for (l, r) in cs:
+        nst = unify(l, 'with', r, 'in', nst)
+        if nst == None: return None
+
+    return nst
+
+def unify_in(c, st):
+    match c:
+        case ('rel_app', _, _): return unify_rel_in(c, st)
+        case (x, y): 
+            return unify(x, 'with', y, 'in', st)
+        case ls:
+            nst = st
+            for c in ls: nst = unify_in(c, nst)
+            return nst
 
 def eq(a, b, st): return unify(a, 'with', b, 'in', st)
 
 def and_(a, b, st):
-    (t1, t2) = a
-    (t3, t4) = b
-    s1 = unify(t1, 'with', t2, 'in', st)
-    s2 = unify(t3, 'with', t4, 'in', s1)
+    s1 = unify_in(a, st)
+    s2 = unify_in(b, s1)
     return s2
-
 # idk if this is right
 def or_(a, b, st):
     (t1, t2) = a
@@ -92,7 +108,6 @@ assert(subst('x', 'for', ('num', 1), 'in', ('var', 'y')) == ('var', 'y'))
 assert(and_((('var', 'x'), ('num', 1)), (('var', 'x'), ('var', 'y')), []) == [('y', ('num', 1)), ('x', ('num', 1))])
 
 r = ('rel', 'eq1', ['x'], [(('var', 'x'), ('num', 1))])
-cs = get_rel_constraints(('rel_app', r, [('var', 'x')]))
 
-res = unify(('var', 'y'), 'with', ('var', 'x'), 'in', cs)
-assert(res == [('y', ('var', 'x')), (('var', 'x'), ('num', 1))])
+res = and_(('rel_app', r, [('var', 'x')]), (('var', 'x'), ('var', 'y')), [])
+assert(res == [('y', ('num', 1)), ('x', ('num', 1))])

@@ -73,7 +73,6 @@ class Substs:
             case _: return v
 
     def __str__(self):
-        print(self.s)
         return ', '.join(f"{k} = {Substs.aux(v)}" for (k, v) in self.s)
 
     def __getitem__(self, key):
@@ -97,8 +96,16 @@ class Relation:
     def __str__(self):
         return self.name + '(' + ', '.join(map(str, self.args)) + ')' + ' :- ' + str(self.body)
 
-x = Var('x')
-y = Var('y')
-t = (x == 1) & (x == y)
-res = run(t)
-print(res) # x = 1, y = 1
+def tests():
+    def test1():
+        x = Var('x')
+        y = Var('y')
+        t = (x == 1) & (x == y)
+        res = run(t)
+        print(f"[ {t} ]\n\t==> [ {res} ]")
+        assert(res['x'] == 1)
+        assert(res['y'] == 1)
+
+    test1()
+
+tests()
