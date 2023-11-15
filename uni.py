@@ -80,13 +80,18 @@ def unify_rel_in(rel_app, st):
 
 def unify_in(c, st):
     match c:
-        case ('rel_app', _, _): return unify_rel_in(c, st)
-        case (x, y): 
+        case ('rel_app', _, _): 
+            return unify_rel_in(c, st)
+        case ('eq', x, y): 
+            return unify(x, 'with', y, 'in', st)
+        case (x, y) if isinstance(c, tuple): 
             return unify(x, 'with', y, 'in', st)
         case ls:
             nst = st
             for c in ls: nst = unify_in(c, nst)
             return nst
+
+    assert(False)
 
 def eq(a, b, st): return unify(a, 'with', b, 'in', st)
 
